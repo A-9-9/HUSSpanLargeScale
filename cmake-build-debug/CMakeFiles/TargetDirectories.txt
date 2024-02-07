@@ -1,0 +1,3 @@
+C:/Users/Ken/CLionProjects/HUSSpanLargeScale/cmake-build-debug/CMakeFiles/hashtest.dir
+C:/Users/Ken/CLionProjects/HUSSpanLargeScale/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Ken/CLionProjects/HUSSpanLargeScale/cmake-build-debug/CMakeFiles/rebuild_cache.dir

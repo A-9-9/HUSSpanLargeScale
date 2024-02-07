@@ -1,0 +1,5 @@
+# ninja log v5
+442	560	7290280066420946	hashtest.exe	9ff5f20ff906562d
+1	441	7290280065268926	CMakeFiles/hashtest.dir/main.cpp.obj	cdc6d9309c3d932f
+3	715	7290281021911137	CMakeFiles/hashtest.dir/main.cpp.obj	aedd80878001f34d
+716	835	7290281023050770	hashtest.exe	9ff5f20ff906562d
