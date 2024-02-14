@@ -2,6 +2,26 @@
 #include <set>
 #include <fstream>
 #include <map>
+
+class UtilityChain
+{
+public:
+    int sequenceCount;
+//    int *chainSize;
+    int *chainIndex;
+    //[sequence][tid][tid, acu, ru]
+    double ***chain;
+    std::map<int, int> SequenceId2IndexMap;
+    UtilityChain(){};
+    UtilityChain(int sequenceCount, std::map<int, int> SequenceId2IndexMap)
+    {
+        this->sequenceCount = sequenceCount;
+        chainIndex = new int[sequenceCount]{0};
+        chain = new double**[sequenceCount];
+        this->SequenceId2IndexMap=SequenceId2IndexMap;
+    }
+};
+
 class UtilityMatrix
 {
 public:
@@ -38,8 +58,9 @@ int main() {
     }
 
     //Construct external utility
-//    int *utility = new int[5]{0};
-    double *utility = new double[1559]{0};
+    int itemSize = 1559;
+//    int *utility = new int[itemSize]{0};
+    double *utility = new double[itemSize]{0};
     int itemInput;
     double utilityInput;
     while (readUtility >> itemInput >> utilityInput)
@@ -52,6 +73,7 @@ int main() {
     int sequenceSize = 8842;
 //    double ***utilityTable = new double**[sequenceSize];
     UtilityMatrix *utilityMatrix = new UtilityMatrix[sequenceSize];
+    set<int> utilityChainCount[itemSize];
     int sid, tid, item;
     double quantity;
     set<int> s;
@@ -59,7 +81,6 @@ int main() {
     int sidCount = -1;
     while (readData >> sid >> tid >> item >> quantity)
     {
-//        cout << sid << ", " << tid << ", " << item << ", " << quantity << endl;
         if (sidCount == -1)
         {
             tidSize = 0;
@@ -73,7 +94,6 @@ int main() {
                 tempUtilityMatrix[i] = new double[s.size()]{0};
                 tempRemainingUtilityMatrix[i] = new double[s.size()]{0};
             }
-//            utilityTable[sid-2] = tempUtilityMatrix;
             map<int, int> itemToIndex;
             int index = 0;
             for (set<int>::iterator iterator=s.begin(); iterator!=s.end(); ++iterator)
@@ -87,8 +107,8 @@ int main() {
         }
         tidSize = max(tidSize, tid);
         s.insert(item);
+        utilityChainCount[item-1].insert(sid-1);
     }
-
 
     double **tempUtilityMatrix = new double*[tidSize];
     double **tempRemainingUtilityMatrix = new double*[tidSize];
@@ -132,32 +152,58 @@ int main() {
         }
     }
 
-//    for(int i = 0; i < sequenceSize; i++)
-//    {
-//        for (int j = 0; j < utilityMatrix[i].transactionSize; j++)
-//        {
-//            for (int k = 0; k < utilityMatrix[i].itemSize; k++)
-//            {
-//                cout << utilityMatrix[i].utilityMatrix[j][k] << ", ";
-//            }
-//            cout << endl;
-//        }
-//        cout << endl;
-//    }
-
-    cout << utilityMatrix[0].transactionSize << ", " << utilityMatrix[0].itemSize << endl;
-    for (int j = 0; j < utilityMatrix[0].transactionSize; j++)
-        {
-            for (int k = 0; k < utilityMatrix[0].itemSize; k++)
-            {
-                cout << utilityMatrix[0].utilityMatrix[j][k] << ", ";
-            }
-            cout << endl;
-        }
-    for (map<int, int>::iterator it=utilityMatrix[sid-1].item2transactionIdMap.begin(); it!=utilityMatrix[sid-1].item2transactionIdMap.end(); ++it)
+    map<int, int> itemToSequence[itemSize];
+    index = 0;
+    for (int i = 0; i < itemSize; i++)
     {
-        cout << it->first << ": " << it->second << endl;
+        for (set<int>::iterator it=utilityChainCount[i].begin(); it != utilityChainCount[i].end(); ++it)
+        {
+            itemToSequence[i][*it] = index++;
+        }
+        index = 0;
     }
+
+    //[item]
+    UtilityChain *utilityChain = new UtilityChain[itemSize];
+    for (int i = 0; i < itemSize; i++)
+    {
+        utilityChain[i] = UtilityChain(utilityChainCount[i].size(), itemToSequence[i]);
+    }
+
+    for(int i = 0; i < sequenceSize; i++)
+    {
+        for (map<int, int>::iterator it=utilityMatrix[i].item2transactionIdMap.begin(); it != utilityMatrix[i].item2transactionIdMap.end(); ++it)
+        {
+            //it->first-1: chain, it->second: matrix
+            int tempUtilityChainSize = 0;
+            for (int k = 0; k < utilityMatrix[i].transactionSize; k++) {
+                if (utilityMatrix[i].utilityMatrix[k][it->second] != 0) {
+                    tempUtilityChainSize++;
+                }
+            }
+            index = utilityChain[it->first-1].SequenceId2IndexMap[i];
+            utilityChain[it->first-1].chain[index] = new double *[tempUtilityChainSize];
+            int index2 = 0;
+            for (int k = 0; k < utilityMatrix[i].transactionSize; k++)
+            {
+                if (utilityMatrix[i].utilityMatrix[k][it->second] != 0)
+                {
+                    utilityChain[it->first-1].chain[index][index2] = new double[3]{0};
+                    utilityChain[it->first-1].chain[index][index2][0] = k;
+                    utilityChain[it->first-1].chain[index][index2][1] = utilityMatrix[i].utilityMatrix[k][it->second];
+                    utilityChain[it->first-1].chain[index][index2][2] = utilityMatrix[i].remainingUtilityMatrix[k][it->second];
+                    index2++;
+                }
+            }
+            utilityChain[it->first-1].chainIndex[index] = index2;
+        }
+    }
+
+    for (int k = 0; k < utilityChain[1557].chainIndex[2]; k++)
+    {
+        cout << utilityChain[1557].chain[2][k][0] << ", " << utilityChain[1557].chain[2][k][1];
+    }
+
 
     return 0;
 }
