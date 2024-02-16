@@ -144,7 +144,7 @@ UtilityChain I(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
     a.PEU = totalPEU;
     a.pattern = utilityChain.pattern + "," + to_string(extensionItem+1);
     a.lastPattern = extensionItem+1;
-//    cout << a.utility << ", " << a.PEU << endl;
+
     return a;
 };
 
@@ -154,22 +154,16 @@ UtilityChain S(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
     int *chainIndex = new int[seqSize];
     double ***chain = new double**[seqSize];
     map<int, int> chainItemToIndex;
-    //for each utility chain sequence
     for (map<int, int>::iterator it=utilityChain.SequenceId2IndexMap.begin(); it != utilityChain.SequenceId2IndexMap.end(); ++it)
     {
-//        cout << it->first << ": " << it->second << endl;
-        //for each utility chain instances
         int size = 0;
-        // tid for each from here plus one;
         int tidIndexOnUM = utilityChain.chain[it->second][0][0]+1;
-        //utility matrix contain this item or not
         if (!utilityMatrix[it->first].item2transactionIdMap.count(extensionItem+1))
         {
             continue;
         }
         for (int j = tidIndexOnUM; j < utilityMatrix[it->first].transactionSize; j++)
         {
-            int tt = utilityMatrix[it->first].utilityMatrix[j][utilityMatrix[it->first].item2transactionIdMap[extensionItem+1]];
             if (utilityMatrix[it->first].utilityMatrix[j][utilityMatrix[it->first].item2transactionIdMap[extensionItem+1]] != 0)
             {
                 size++;
@@ -181,21 +175,17 @@ UtilityChain S(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
             int index = 0;
             for (int j = tidIndexOnUM; j < utilityMatrix[it->first].transactionSize; j++)
             {
-//            int tt = utilityMatrix[it->first].utilityMatrix[j][utilityMatrix[it->first].item2transactionIdMap[extensionItem+1]];
                 if (utilityMatrix[it->first].utilityMatrix[j][utilityMatrix[it->first].item2transactionIdMap[extensionItem+1]] != 0)
                 {
                     temp[index] = new double[3];
                     temp[index][0] = j;
-                    double tempU = utilityMatrix[it->first].utilityMatrix[j][utilityMatrix[it->first].item2transactionIdMap[extensionItem+1]];
                     double tempUtility = 0;
-                    int dgg = utilityChain.chainIndex[it->second];
                     for (int k = 0; k < utilityChain.chainIndex[it->second]; k++)
                     {
                         if (utilityChain.chain[it->second][k][0] >= j)
                         {
                             break;
                         }
-                        double debug=utilityChain.chain[it->second][k][1];
                         tempUtility = max(tempUtility, utilityChain.chain[it->second][k][1]);
                     }
                     temp[index][1] = tempUtility+utilityMatrix[it->first].utilityMatrix[j][utilityMatrix[it->first].item2transactionIdMap[extensionItem+1]];
@@ -222,9 +212,7 @@ UtilityChain S(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
             chainIndex[sequenceCount] = index;
             chainItemToIndex[it->first] = sequenceCount;
             chain[sequenceCount++] = temp;
-
         }
-
     }
     UtilityChain a = UtilityChain();
     a.sequenceCount=sequenceCount;
@@ -256,7 +244,6 @@ UtilityChain S(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
     a.PEU = totalPEU;
     a.pattern = utilityChain.pattern +"}{"+ to_string(extensionItem+1);
     a.lastPattern = extensionItem+1;
-//    cout << a.utility << ", " << a.PEU << endl;
 
     return a;
 }
@@ -267,12 +254,7 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
     {
         return;
     }
-    for (map<int, int>::iterator it=utilityMatrix[2].item2transactionIdMap.begin(); it != utilityMatrix[2].item2transactionIdMap.end(); ++it)
-    {
-//        cout << it->first << ": " << it->second << endl;
-    }
-
-    set<int> iList;//store index
+    set<int> iList;
     set<int> iItemList;
     map<int, int> iRSU;
     set<int> sList;
@@ -284,11 +266,8 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
         for (int i = 0; i < utilityChain.chainIndex[it->second]; i++)
         {
             int tidIndexOnUM = utilityChain.chain[it->second][i][0];
-            int tt = utilityMatrix[it->first].item2transactionIdMap[utilityChain.lastPattern]+1;
-            //j is index of matrix
             for (int j = utilityMatrix[it->first].item2transactionIdMap[utilityChain.lastPattern]+1; j < utilityMatrix[it->first].itemSize; j++)
             {
-                int tt = utilityMatrix[it->first].utilityMatrix[tidIndexOnUM][j];
                 if (utilityMatrix[it->first].utilityMatrix[tidIndexOnUM][j] != 0)
                 {
                     for (map<int, int>::iterator iterator=utilityMatrix[it->first].item2transactionIdMap.begin(); iterator!=utilityMatrix[it->first].item2transactionIdMap.end(); ++iterator)
@@ -308,26 +287,20 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
             if (iList.count(it2->first))
             {
                 iRSU[it2->first] += utilityChain.PEUList[it->second];
-//                iItemList.insert(it2->first);
             }
         }
         for (set<int>::iterator iterator=iList.begin(); iterator!=iList.end(); ++iterator)
         {
-//            cout << *iterator << ", ";
             iItemList.insert(*iterator);
         }
         iList.clear();
-//        cout << endl;
-
 
         //s-candidate
-
         int tempTid = utilityChain.chain[it->second][0][0]+1;
         for (int i = tempTid; i < utilityMatrix[it->first].transactionSize; i++)
         {
             for (map<int, int>::iterator iterator=utilityMatrix[it->first].item2transactionIdMap.begin(); iterator!=utilityMatrix[it->first].item2transactionIdMap.end(); ++iterator)
             {
-                int tt = utilityMatrix[it->first].utilityMatrix[i][iterator->second];
                 if (utilityMatrix[it->first].utilityMatrix[i][iterator->second] != 0)
                 {
                     sList.insert(iterator->first);
@@ -349,14 +322,12 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
 
         for (set<int>::iterator iterator=sList.begin(); iterator!=sList.end(); ++iterator)
         {
-//            cout << *iterator << ", ";
             sItemList.insert(*iterator);
         }
         sList.clear();
     }
 
-//    //RSU pruning;
-    //{item: RSU}
+    //RSU pruning;
     for (map<int, int>::iterator iterator=iRSU.begin(); iterator!=iRSU.end(); ++iterator)
     {
         if (iterator->second>=threshold)
@@ -368,6 +339,17 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
                 cout << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
             }
             HUSSpan(utilityMatrix, threshold, tPrime, outFile);
+            for (int i = 0; i < tPrime.sequenceCount; i++)
+            {
+                for (int j = 0; j < tPrime.chainIndex[i]; j++)
+                {
+                    delete [] tPrime.chain[i][j];
+                }
+                delete [] tPrime.chain[i];
+            }
+            delete [] tPrime.chain;
+            delete [] tPrime.PEUList;
+            delete [] tPrime.chainIndex;
         }
     }
 
@@ -382,46 +364,48 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
                 cout << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
             }
             HUSSpan(utilityMatrix, threshold, tPrime, outFile);
+            for (int i = 0; i < tPrime.sequenceCount; i++)
+            {
+                for (int j = 0; j < tPrime.chainIndex[i]; j++)
+                {
+                    delete [] tPrime.chain[i][j];
+                }
+                delete [] tPrime.chain[i];
+            }
+            delete [] tPrime.chain;
+            delete [] tPrime.PEUList;
+            delete [] tPrime.chainIndex;
         }
     }
-
-
-//    for (int i = 0; i < utilityChain.sequenceCount; i++)
-//    {
-//        cout << utilityChain.PEUList[i] << endl;
-//    }
-//    cout << endl;
-//    for (map<int, int>::iterator iterator=iRSU.begin(); iterator!=iRSU.end(); ++iterator)
-//    {
-//        cout << iterator->first << ": " << iterator->second << endl;
-//    }
-//    cout << endl;
-//    for (map<int, int>::iterator iterator=sRSU.begin(); iterator!=sRSU.end(); ++iterator)
-//    {
-//        cout << iterator->first << ": " << iterator->second << endl;
-//    }
-
 }
 
 int main() {
     ifstream readUtility;
     readUtility.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998_utb.txt");
 //    readUtility.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalUtility.txt");
+//    readUtility.open("C:\\Users\\mio\\CLionProjects\\untitled4\\paperData\\originalUtility.txt");
+//    readUtility.open("C:\\Users\\mio\\CLionProjects\\untitled4\\foodmartData\\foodmart_until1998_utb.txt");
     ifstream readData;
     readData.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998.txt");
 //    readData.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalData.txt");
+//    readData.open("C:\\Users\\mio\\CLionProjects\\untitled4\\paperData\\originalData.txt");
+//    readData.open("C:\\Users\\mio\\CLionProjects\\untitled4\\foodmartData\\foodmart_until1998.txt");
     ifstream readData2;
     readData2.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998.txt");
 //    readData2.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalData.txt");
+//    readData2.open("C:\\Users\\mio\\CLionProjects\\untitled4\\paperData\\originalData.txt");
+//    readData2.open("C:\\Users\\mio\\CLionProjects\\untitled4\\foodmartData\\foodmart_until1998.txt");
     if (!readUtility.is_open() || !readData.is_open() || !readData2.is_open()) {
         cerr << "Failed to read data.\n";
         return 1;
     }
 
     //Construct external utility
+//    int itemSize = 5;
+//    double *utility = new double[itemSize]{0};
     int itemSize = 1559;
-//    int *utility = new int[itemSize]{0};
     double *utility = new double[1559]{0};
+
     int itemInput;
     double utilityInput;
     while (readUtility >> itemInput >> utilityInput)
@@ -432,7 +416,6 @@ int main() {
     //Construct utility matrix
 //    int sequenceSize = 5;
     int sequenceSize = 8842;
-//    double ***utilityTable = new double**[sequenceSize];
     UtilityMatrix *utilityMatrix = new UtilityMatrix[sequenceSize];
     set<int> utilityChainCount[itemSize];
     int sid, tid, item;
@@ -491,7 +474,6 @@ int main() {
         utilityMatrix[sid-1].utilityMatrix[tid-1][utilityMatrix[sid-1].item2transactionIdMap[item]] = double(quantity)*utility[item-1];
     }
 
-
     //Construct remaining utility matrix
     for(int i = 0; i < sequenceSize; i++)
     {
@@ -524,7 +506,6 @@ int main() {
         index = 0;
     }
 
-    //[item]
     UtilityChain *utilityChain = new UtilityChain[itemSize];
     for (int i = 0; i < itemSize; i++)
     {
@@ -535,7 +516,6 @@ int main() {
     {
         for (map<int, int>::iterator it=utilityMatrix[i].item2transactionIdMap.begin(); it != utilityMatrix[i].item2transactionIdMap.end(); ++it)
         {
-            //it->first-1: chain, it->second: matrix
             int tempUtilityChainSize = 0;
             for (int k = 0; k < utilityMatrix[i].transactionSize; k++) {
                 if (utilityMatrix[i].utilityMatrix[k][it->second] != 0) {
@@ -560,26 +540,6 @@ int main() {
         }
     }
 
-    /*double tempUtility = 0;
-    double *PEUList = new double[utilityChain[0].sequenceCount];
-    double totalPEU = 0;
-    index = 0;
-    for (int i = 0; i < utilityChain[0].sequenceCount; i++)
-    {
-        double temp = 0;
-        double tempPEU = 0;
-        for (int j = 0; j < utilityChain[0].chainIndex[i]; j++)
-        {
-            temp = max(temp, utilityChain[0].chain[i][j][1]);
-            if (utilityChain[0].chain[i][j][2]>0)
-            {
-                tempPEU = max(tempPEU, utilityChain[0].chain[i][j][1] + utilityChain[0].chain[i][j][2]);
-            }
-        }
-        tempUtility += temp;
-        PEUList[index++] = tempPEU;
-        totalPEU += tempPEU;
-    }*/
     for (int i = 0; i < itemSize; i++)
     {
         double tempUtility = 0;
@@ -607,57 +567,14 @@ int main() {
         utilityChain[i].PEU = totalPEU;
     }
 
-//    for (int i = 0; i < itemSize; i++)
-//    {
-//        cout << utilityChain[i].pattern << ": " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
-//    }
-
-
-
-//    for (int j = 0; j < utilityMatrix[2].itemSize; j++)
-//    {
-//        for (int k = 0; k < utilityMatrix[2].transactionSize; k++)
-//        {
-//
-//            cout << utilityMatrix[2].utilityMatrix[k][j] << ", ";
-//        }
-//        cout << endl;
-//    }
-
-
-//    for (map<int, int>::iterator it=utilityChain[2].SequenceId2IndexMap.begin(); it!=utilityChain[2].SequenceId2IndexMap.end(); ++it)
-//    {
-//        //for each tid
-//        for (int i = 0; i < utilityChain[2].chainIndex[it->second]; i++)
-//        {
-//            int tidd = utilityChain[2].chain[it->second][i][0];
-//            int itemIndex = utilityMatrix[it->first].item2transactionIdMap[2];
-//
-//            for (int j = itemIndex+1; j < utilityMatrix[it->first].itemSize; j++)
-//            {
-//                int ttt = utilityMatrix[it->first].utilityMatrix[tidd][j];
-//                cout << ttt;
-//            }
-//            utilityMatrix[it->first].utilityMatrix[tidd][itemIndex];
-//        }
-////        cout << it->first << ":" << it->second << ", " << endl;
-//    }
-
-//    for (map<int, int>::iterator it=utilityMatrix[2].item2transactionIdMap.begin(); it!=utilityMatrix[2].item2transactionIdMap.end(); ++it)
-//    {
-//        cout << it->first << ": " << it->second << endl;
-//    }
-
-//    UtilityChain c2 = I(utilityChain[2], 3, utilityMatrix);
-//    S(c2, 4, utilityMatrix);
     ofstream outFile;
-    outFile.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeScale\\foodmartOutputThreshold3000.txt");
+    outFile.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeScale\\test2.txt");
     if (!outFile.is_open())
     {
         cout << "Unable to write file" << endl;
         return -1;
     }
-    int threshold = 2000;
+    int threshold = 2200;
     for (int i = 0; i < itemSize; i++)
     {
         if (utilityChain[i].utility >= threshold)
@@ -665,18 +582,25 @@ int main() {
             outFile << "{" << utilityChain[i].pattern << "}= " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
             cout << "{" << utilityChain[i].pattern << "}= " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
         }
-
         HUSSpan(utilityMatrix, threshold, utilityChain[i], outFile);
     }
 
     outFile.close();
-//    HUSSpan(utilityMatrix, 100, utilityChain[0]);
-//    I(S(utilityChain[2], 3, utilityMatrix), 4, utilityMatrix);
-//    UtilityChain c2 = S(utilityChain[0], 2, utilityMatrix);
 
 
-//    I(c2, 4, utilityMatrix);
-//    I(c2, 4, utilityMatrix);
-//    I(c2, 3, utilityMatrix);
+    //memory release
+    delete [] utility;
+    for (int i = 0; i < sequenceSize; i++)
+    {
+        for (int j = 0; j < utilityMatrix[i].transactionSize; j++)
+        {
+            delete [] utilityMatrix[i].utilityMatrix[j];
+            delete [] utilityMatrix[i].remainingUtilityMatrix[j];
+        }
+        delete [] utilityMatrix[i].utilityMatrix;
+        delete [] utilityMatrix[i].remainingUtilityMatrix;
+    }
+    delete [] utilityMatrix;
+//    delete [] utilityChain;
     return 0;
 }
