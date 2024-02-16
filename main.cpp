@@ -261,7 +261,7 @@ UtilityChain S(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
     return a;
 }
 
-void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityChain)
+void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityChain, ofstream& outFile)
 {
     if (utilityChain.PEU < threshold)
     {
@@ -364,9 +364,10 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
             UtilityChain tPrime = I(utilityChain, iterator->first-1, utilityMatrix);
             if (tPrime.utility >= threshold)
             {
+                outFile << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
                 cout << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
             }
-            HUSSpan(utilityMatrix, threshold, tPrime);
+            HUSSpan(utilityMatrix, threshold, tPrime, outFile);
         }
     }
 
@@ -377,9 +378,10 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
             UtilityChain tPrime = S(utilityChain, iterator->first-1, utilityMatrix);
             if (tPrime.utility >= threshold)
             {
+                outFile << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
                 cout << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
             }
-            HUSSpan(utilityMatrix, threshold, tPrime);
+            HUSSpan(utilityMatrix, threshold, tPrime, outFile);
         }
     }
 
@@ -403,23 +405,23 @@ void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityCh
 
 int main() {
     ifstream readUtility;
-//    readUtility.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998_utb.txt");
-    readUtility.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalUtility.txt");
+    readUtility.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998_utb.txt");
+//    readUtility.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalUtility.txt");
     ifstream readData;
-//    readData.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998.txt");
-    readData.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalData.txt");
+    readData.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998.txt");
+//    readData.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalData.txt");
     ifstream readData2;
-//    readData2.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998.txt");
-    readData2.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalData.txt");
+    readData2.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\foodmartData\\foodmart_until1998.txt");
+//    readData2.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeData\\paperData\\originalData.txt");
     if (!readUtility.is_open() || !readData.is_open() || !readData2.is_open()) {
         cerr << "Failed to read data.\n";
         return 1;
     }
 
     //Construct external utility
-    int itemSize = 5;
-    int *utility = new int[itemSize]{0};
-//    double *utility = new double[1559]{0};
+    int itemSize = 1559;
+//    int *utility = new int[itemSize]{0};
+    double *utility = new double[1559]{0};
     int itemInput;
     double utilityInput;
     while (readUtility >> itemInput >> utilityInput)
@@ -428,8 +430,8 @@ int main() {
     }
 
     //Construct utility matrix
-    int sequenceSize = 5;
-//    int sequenceSize = 8842;
+//    int sequenceSize = 5;
+    int sequenceSize = 8842;
 //    double ***utilityTable = new double**[sequenceSize];
     UtilityMatrix *utilityMatrix = new UtilityMatrix[sequenceSize];
     set<int> utilityChainCount[itemSize];
@@ -648,13 +650,26 @@ int main() {
 
 //    UtilityChain c2 = I(utilityChain[2], 3, utilityMatrix);
 //    S(c2, 4, utilityMatrix);
-    int threshold = 0;
+    ofstream outFile;
+    outFile.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeScale\\foodmartOutputThreshold3000.txt");
+    if (!outFile.is_open())
+    {
+        cout << "Unable to write file" << endl;
+        return -1;
+    }
+    int threshold = 2000;
     for (int i = 0; i < itemSize; i++)
     {
         if (utilityChain[i].utility >= threshold)
+        {
+            outFile << "{" << utilityChain[i].pattern << "}= " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
             cout << "{" << utilityChain[i].pattern << "}= " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
-        HUSSpan(utilityMatrix, threshold, utilityChain[i]);
+        }
+
+        HUSSpan(utilityMatrix, threshold, utilityChain[i], outFile);
     }
+
+    outFile.close();
 //    HUSSpan(utilityMatrix, 100, utilityChain[0]);
 //    I(S(utilityChain[2], 3, utilityMatrix), 4, utilityMatrix);
 //    UtilityChain c2 = S(utilityChain[0], 2, utilityMatrix);
