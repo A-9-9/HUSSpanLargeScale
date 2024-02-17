@@ -3,6 +3,8 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <chrono>
+
 using namespace std;
 class UtilityChain
 {
@@ -248,7 +250,7 @@ UtilityChain S(UtilityChain utilityChain, int extensionItem, UtilityMatrix *util
     return a;
 }
 
-void HUSSpan(UtilityMatrix *utilityMatrix, int threshold, UtilityChain utilityChain, ofstream& outFile)
+void HUSSpan(UtilityMatrix *utilityMatrix, double threshold, UtilityChain utilityChain, ofstream& outFile)
 {
     if (utilityChain.PEU < threshold)
     {
@@ -474,6 +476,7 @@ int main() {
         utilityMatrix[sid-1].utilityMatrix[tid-1][utilityMatrix[sid-1].item2transactionIdMap[item]] = double(quantity)*utility[item-1];
     }
 
+    double totalUtility = 0;
     //Construct remaining utility matrix
     for(int i = 0; i < sequenceSize; i++)
     {
@@ -485,6 +488,7 @@ int main() {
                 cumulateUtility += utilityMatrix[i].utilityMatrix[j][k];
             }
         }
+        totalUtility += cumulateUtility;
         for (int j = 0; j < utilityMatrix[i].transactionSize; j++)
         {
             for (int k = 0; k < utilityMatrix[i].itemSize; k++)
@@ -568,13 +572,17 @@ int main() {
     }
 
     ofstream outFile;
-    outFile.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeScale\\test2.txt");
+    outFile.open("C:\\Users\\Ken\\CLionProjects\\HUSSpanLargeScale\\test3.txt");
     if (!outFile.is_open())
     {
         cout << "Unable to write file" << endl;
         return -1;
     }
-    int threshold = 2200;
+    double thresholdRatio = 0.001721;
+    double threshold = thresholdRatio*totalUtility;
+    cout << "Threshold ratio: " << thresholdRatio << ", Threshold utility: " << threshold << endl;
+
+    chrono::high_resolution_clock::time_point start = chrono::high_resolution_clock::now();
     for (int i = 0; i < itemSize; i++)
     {
         if (utilityChain[i].utility >= threshold)
@@ -584,9 +592,11 @@ int main() {
         }
         HUSSpan(utilityMatrix, threshold, utilityChain[i], outFile);
     }
+    chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
+    chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    cout << "Execution time: " << duration.count() << " milliseconds" << endl;
 
     outFile.close();
-
 
     //memory release
     delete [] utility;
