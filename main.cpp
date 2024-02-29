@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 #include <chrono>
-
+int globalCount = 0;
 using namespace std;
 class UtilityChain
 {
@@ -258,10 +258,10 @@ void HUSSpan(UtilityMatrix *utilityMatrix, double threshold, UtilityChain utilit
     }
     set<int> iList;
     set<int> iItemList;
-    map<int, int> iRSU;
+    map<int, double> iRSU;
     set<int> sList;
     set<int> sItemList;
-    map<int, int> sRSU;
+    map<int, double> sRSU;
     for (map<int, int>::iterator it=utilityChain.SequenceId2IndexMap.begin(); it != utilityChain.SequenceId2IndexMap.end(); ++it)
     {
         //i-candidate
@@ -330,7 +330,7 @@ void HUSSpan(UtilityMatrix *utilityMatrix, double threshold, UtilityChain utilit
     }
 
     //RSU pruning;
-    for (map<int, int>::iterator iterator=iRSU.begin(); iterator!=iRSU.end(); ++iterator)
+    for (map<int, double>::iterator iterator=iRSU.begin(); iterator!=iRSU.end(); ++iterator)
     {
         if (iterator->second>=threshold)
         {
@@ -339,6 +339,7 @@ void HUSSpan(UtilityMatrix *utilityMatrix, double threshold, UtilityChain utilit
             {
                 outFile << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
                 cout << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
+                globalCount++;
             }
             HUSSpan(utilityMatrix, threshold, tPrime, outFile);
             for (int i = 0; i < tPrime.sequenceCount; i++)
@@ -355,7 +356,7 @@ void HUSSpan(UtilityMatrix *utilityMatrix, double threshold, UtilityChain utilit
         }
     }
 
-    for (map<int, int>::iterator iterator=sRSU.begin(); iterator!=sRSU.end(); ++iterator)
+    for (map<int, double>::iterator iterator=sRSU.begin(); iterator!=sRSU.end(); ++iterator)
     {
         if (iterator->second>=threshold)
         {
@@ -364,6 +365,7 @@ void HUSSpan(UtilityMatrix *utilityMatrix, double threshold, UtilityChain utilit
             {
                 outFile << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
                 cout << "{" << tPrime.pattern << "}= " << tPrime.utility << ", " << tPrime.PEU << endl;
+                globalCount++;
             }
             HUSSpan(utilityMatrix, threshold, tPrime, outFile);
             for (int i = 0; i < tPrime.sequenceCount; i++)
@@ -494,6 +496,13 @@ int main() {
             for (int k = 0; k < utilityMatrix[i].itemSize; k++)
             {
                 cumulateUtility -= utilityMatrix[i].utilityMatrix[j][k];
+                //ru negative problem
+//                if (cumulateUtility < 0.0001)
+//                {
+//                    utilityMatrix[i].remainingUtilityMatrix[j][k] = 0;
+//                } else {
+//                    utilityMatrix[i].remainingUtilityMatrix[j][k] = cumulateUtility;
+//                }
                 utilityMatrix[i].remainingUtilityMatrix[j][k] = cumulateUtility;
             }
         }
@@ -589,13 +598,14 @@ int main() {
         {
             outFile << "{" << utilityChain[i].pattern << "}= " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
             cout << "{" << utilityChain[i].pattern << "}= " << utilityChain[i].utility << ", " << utilityChain[i].PEU << endl;
+            globalCount++;
         }
         HUSSpan(utilityMatrix, threshold, utilityChain[i], outFile);
     }
     chrono::high_resolution_clock::time_point end = chrono::high_resolution_clock::now();
     chrono::milliseconds duration = chrono::duration_cast<chrono::milliseconds>(end - start);
     cout << "Execution time: " << duration.count() << " milliseconds" << endl;
-
+    cout << globalCount << endl;
     outFile.close();
 
     //memory release
